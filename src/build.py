@@ -1,7 +1,7 @@
 # Сборка тёмной версии из исходного прототипа.
 # Тексты, данные каталога (d-content, d-nom) и логика берутся из ../mz-prototype-src/index.html без изменений;
 # меняются только стили, первый экран (3D) и вид номенклатуры (картинки с подписями).
-import re, pathlib
+import re, pathlib, hashlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT.parent / 'mz-prototype-src' / 'index.html'
@@ -95,6 +95,8 @@ head = """<!doctype html>
 <style>
 """ + css + "\n</style></head><body>\n"
 
+ver = hashlib.md5((ROOT / 'metal-hero.js').read_bytes()).hexdigest()[:8]
+module = module.replace("from './metal-hero.js'", "from './metal-hero.js?v=%s'" % ver)
 out = head + body + data + "\n<script>" + script + "</script>\n<script type=\"module\">" + module + "</script>\n</body></html>\n"
 (ROOT / 'index.html').write_text(out)
 print('ok', len(out))

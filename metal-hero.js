@@ -46,11 +46,11 @@ export const METAL_ITEMS = [
 // base — цвет металла, rough — шероховатость, streak — продольные риски проката,
 // scale — окалина (0..1), rust — ржавчина (0..1), spangle — «цветы» цинка, bump — рельеф
 const FINISHES = {
-  profile: { base: [0.2, 0.205, 0.215], rough: 0.42, streak: 0.1, scale: 0.5, rust: 0.03, spangle: 0, bump: 0.5, seed: 1.3 },
-  round:   { base: [0.18, 0.185, 0.195], rough: 0.44, streak: 0.08, scale: 0.55, rust: 0.04, spangle: 0, bump: 0.5, seed: 7.1 },
-  channel: { base: [0.17, 0.175, 0.185], rough: 0.48, streak: 0.07, scale: 0.6, rust: 0.07, spangle: 0, bump: 0.7, seed: 3.7 },
-  angle:   { base: [0.19, 0.19, 0.2], rough: 0.46, streak: 0.07, scale: 0.55, rust: 0.1, spangle: 0, bump: 0.7, seed: 5.9 },
-  rebar:   { base: [0.15, 0.145, 0.14], rough: 0.55, streak: 0.04, scale: 0.6, rust: 0.38, spangle: 0, bump: 1.1, seed: 9.2 },
+  profile: { base: [0.12, 0.125, 0.135], rough: 0.4, streak: 0.1, scale: 0.5, rust: 0.03, spangle: 0, bump: 0.5, seed: 1.3 },
+  round:   { base: [0.11, 0.115, 0.125], rough: 0.42, streak: 0.08, scale: 0.55, rust: 0.04, spangle: 0, bump: 0.5, seed: 7.1 },
+  channel: { base: [0.1, 0.105, 0.115], rough: 0.46, streak: 0.07, scale: 0.6, rust: 0.07, spangle: 0, bump: 0.7, seed: 3.7 },
+  angle:   { base: [0.11, 0.113, 0.12], rough: 0.45, streak: 0.07, scale: 0.55, rust: 0.1, spangle: 0, bump: 0.7, seed: 5.9 },
+  rebar:   { base: [0.09, 0.088, 0.086], rough: 0.55, streak: 0.04, scale: 0.6, rust: 0.38, spangle: 0, bump: 1.1, seed: 9.2 },
 };
 
 const GLSL_NOISE = /* glsl */ `
@@ -111,7 +111,7 @@ const GLSL_SURFACE = /* glsl */ `
   float streak = mzNoise(vec3(q.xy * 2.2, q.z * 0.05)) * 0.6 + mzNoise(vec3(q.xy * 7.0, q.z * 0.12)) * 0.4;
   float micro = mzNoise(q * 3.0);
 
-  vec3 mzCol = uBase * (0.78 + 0.5 * cloud + 0.16 * cloud2) * (1.0 + uStreak * streak);
+  vec3 mzCol = uBase * (0.85 + 0.3 * cloud + 0.1 * cloud2) * (1.0 + uStreak * streak);
   float mzRough = uRough + 0.08 * cloud2 + 0.03 * micro;
   float mzMetal = 0.9;
   float mzH = streak * uStreak * 0.4 + micro * 0.02;
@@ -119,8 +119,8 @@ const GLSL_SURFACE = /* glsl */ `
   // оксидная плёнка: светлые пыльные матовые разводы
   if (uScale > 0.0) {
     float ox = smoothstep(0.0, 0.4, cloud * 0.8 + cloud2 * 0.55 + (uScale - 0.5) * 0.6);
-    vec3 oxCol = vec3(0.3, 0.305, 0.31) * (0.88 + 0.22 * cloud2);
-    mzCol = mix(mzCol, oxCol, ox * 0.5);
+    vec3 oxCol = vec3(0.17, 0.175, 0.185) * (0.9 + 0.2 * cloud2);
+    mzCol = mix(mzCol, oxCol, ox * 0.3);
     mzRough = mix(mzRough, 0.7, ox * 0.6);
     mzMetal = mix(mzMetal, 0.6, ox * 0.6);
     mzH += ox * 0.08;
@@ -128,7 +128,7 @@ const GLSL_SURFACE = /* glsl */ `
 
   // редкие светлые царапины и потёртости вдоль длины
   float scr = smoothstep(0.55, 0.78, mzNoise(vec3(q.xy * 4.0, q.z * 0.035) + 3.0)) * smoothstep(0.25, 0.6, mzNoise(q * 0.3 + 9.0));
-  mzCol = mix(mzCol, vec3(0.42, 0.43, 0.44), scr * 0.35);
+  mzCol = mix(mzCol, vec3(0.26, 0.27, 0.28), scr * 0.3);
   mzRough -= scr * 0.12;
 
   // цинк: крупные кристаллы, низкий контраст
@@ -206,7 +206,7 @@ function makeWarehouseEnv() {
   panel(14, 9, 0xfff6ec, 2.6, [0, 9, 1], [0, 0, 0]);        // большой софтбокс сверху
   panel(2.2, 12, 0xdfe8ff, 1.6, [-9, 3, -2], [0, 0, 0]);    // холодная полоса слева-сзади
   panel(1.4, 10, 0xffffff, 1.2, [8, 2, 5], [0, 0, 0]);      // узкий блик справа-спереди
-  panel(16, 6, 0xf4f6f8, 0.8, [0, 1.5, 12], [0, 0, 0]);    // мягкая заливка спереди
+  panel(16, 6, 0xf4f6f8, 0.4, [0, 1.5, 12], [0, 0, 0]);    // слабая заливка спереди — боковины остаются графитовыми
   return env;
 }
 
@@ -432,7 +432,8 @@ export function initMetalHero(container, options = {}) {
   const ray = new THREE.Raycaster();
   let hovered = null;
   let dragging = false, lastX = 0, lastY = 0, velY = 0, velX = 0;
-  let rotY = 0, rotX = 0, swayT = 0;
+  const BASE_YAW = 0.82;   // стартовый разворот «три четверти» — видны торцы и сечения
+  let rotY = BASE_YAW, rotX = 0, swayT = 0;
   let lastInteract = -1e9;
   let px = 0, py = 0;
   let downX = 0, downY = 0;
@@ -586,7 +587,7 @@ export function initMetalHero(container, options = {}) {
         // мягкое покачивание вместо полного оборота — прутки не «смотрят» в камеру
         rotY = Math.atan2(Math.sin(rotY), Math.cos(rotY));
         swayT += dt * (reduced ? 0.3 : 1);
-        const target = Math.sin(swayT * 0.22) * 0.7;
+        const target = BASE_YAW + Math.sin(swayT * 0.22) * 0.38;
         rotY += (target - rotY) * Math.min(dt * 0.6, 1);
         rotX += (0 - rotX) * dt * 0.8;
       }
