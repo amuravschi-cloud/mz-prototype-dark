@@ -111,8 +111,8 @@ const GLSL_SURFACE = /* glsl */ `
   float streak = mzNoise(vec3(q.xy * 2.2, q.z * 0.05)) * 0.6 + mzNoise(vec3(q.xy * 7.0, q.z * 0.12)) * 0.4;
   float micro = mzNoise(q * 3.0);
 
-  vec3 mzCol = uBase * (0.85 + 0.3 * cloud + 0.1 * cloud2) * (1.0 + uStreak * streak);
-  float mzRough = uRough + 0.08 * cloud2 + 0.03 * micro;
+  vec3 mzCol = uBase * (0.97 + 0.04 * cloud) * (1.0 + uStreak * streak);
+  float mzRough = uRough + 0.02 * cloud2 + 0.02 * micro;
   float mzMetal = 0.9;
   float mzH = streak * uStreak * 0.4 + micro * 0.02;
 
@@ -120,15 +120,14 @@ const GLSL_SURFACE = /* glsl */ `
   if (uScale > 0.0) {
     float ox = smoothstep(0.0, 0.4, cloud * 0.8 + cloud2 * 0.55 + (uScale - 0.5) * 0.6);
     vec3 oxCol = vec3(0.17, 0.175, 0.185) * (0.9 + 0.2 * cloud2);
-    mzCol = mix(mzCol, oxCol, ox * 0.3);
-    mzRough = mix(mzRough, 0.7, ox * 0.6);
-    mzMetal = mix(mzMetal, 0.6, ox * 0.6);
+    mzCol = mix(mzCol, oxCol, ox * 0.0); // разводы отключены — ровный графит
+    mzRough = mix(mzRough, 0.55, ox * 0.15);
     mzH += ox * 0.08;
   }
 
   // редкие светлые царапины и потёртости вдоль длины
   float scr = smoothstep(0.55, 0.78, mzNoise(vec3(q.xy * 4.0, q.z * 0.035) + 3.0)) * smoothstep(0.25, 0.6, mzNoise(q * 0.3 + 9.0));
-  mzCol = mix(mzCol, vec3(0.26, 0.27, 0.28), scr * 0.3);
+  mzCol = mix(mzCol, vec3(0.26, 0.27, 0.28), scr * 0.0);
   mzRough -= scr * 0.12;
 
   // цинк: крупные кристаллы, низкий контраст

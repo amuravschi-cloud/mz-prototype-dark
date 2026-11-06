@@ -51,7 +51,7 @@ section[id]{scroll-margin-top:20px}
 
 /* ===== Первый экран (тёмный, 3D) ===== */
 .hero{position:relative;min-height:clamp(600px,calc(100vh - 114px),860px);overflow:hidden;background:
-  radial-gradient(55% 70% at 66% 52%,#1E232A 0%,rgba(17,19,23,0) 70%),linear-gradient(180deg,#121418,#0C0D10)}
+  radial-gradient(62% 78% at 64% 50%,#454C57 0%,rgba(52,57,65,.55) 45%,rgba(36,40,46,0) 78%),linear-gradient(180deg,#25292F,#1B1E22)}
 .hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;
   background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:64px 64px;
   -webkit-mask-image:radial-gradient(70% 70% at 62% 50%,#000,transparent 75%);mask-image:radial-gradient(70% 70% at 62% 50%,#000,transparent 75%)}
