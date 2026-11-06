@@ -21,9 +21,7 @@ def sub1(pat, rep, text, flags=0):
 # --- разметка ---
 body = sub1(r'img/logo-green\.png', 'img/logo-white.png', body)
 body = sub1(r'<div class="photo"[^>]*></div>',
-            '<div class="stage" id="stage" aria-hidden="true"></div>\n'
-            '  <aside class="mcard" id="mcard" aria-live="polite"></aside>\n'
-            '  <div class="hint3d">Потяните, чтобы покрутить · наведите на изделие</div>', body)
+            '<div class="stage" id="stage" aria-hidden="true"></div>', body)
 body = sub1(r'<section class="hero">', '<section class="hero dark">', body)
 for sid, theme in [('catalog', 'light'), ('calc', 'dark'), ('hand', 'light'), ('service', 'dark'),
                    ('about', 'light'), ('bases', 'dark'), ('order', 'light')]:
@@ -57,22 +55,7 @@ const items = METAL_ITEMS.filter(i => P[MAP[i.id]]).map(i => ({ ...i, product: P
 const SUB_FIX = { beams: 'Двутавр IPE / IPN', euro_beam: 'Широкополочные двутавры HEA / HEB' };
 const cleanSub = p => SUB_FIX[p.id] || p.subtitle.replace(/\s*\([^)]*\d[^)]*\)/g, '').replace(/\s*№\s*\d.*$/, '').trim();
 
-function renderCard(card, item) {
-  if (!item) { card.classList.remove('is-visible'); return; }
-  const p = item.product;
-  card.innerHTML = `<div class="no">${p.code}</div><h3>${esc(p.title)}</h3><div class="sub">${esc(cleanSub(p))}</div>
-    <dl>${p.specs.slice(0, 2).map(s => `<div><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd></div>`).join('')}</dl>
-    <div class="tag">${esc(p.tag)}</div>
-    <div class="act"><button class="btn primary xs" type="button" data-order="${p.id}">Заказать</button><button class="btn outline xs" type="button" data-open="${p.id}">Размеры</button></div>`;
-  card.classList.add('is-visible');
-}
-const card = document.getElementById('mcard');
-card.addEventListener('click', e => {
-  const o = e.target.closest('[data-open]'), z = e.target.closest('[data-order]');
-  if (o) window.mzOpenSizes(o.dataset.open);
-  if (z) window.mzOrder(z.dataset.order);
-});
-initMetalHero(document.getElementById('stage'), { items, card, renderCard, fadeBehind: document.querySelector('.hero .copy') });
+initMetalHero(document.getElementById('stage'), { items, pick: false, fadeBehind: document.querySelector('.hero .copy') });
 
 // картинки номенклатуры — рендерятся тем же 3D-металлом, когда каталог приближается к экрану
 const cat = document.getElementById('catalog');

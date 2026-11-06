@@ -365,6 +365,7 @@ export function initMetalHero(container, options = {}) {
   const rightReserve = options.rightReserve ?? 360; // px справа под карточку
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canHover = window.matchMedia('(hover: hover)');
+  const allowPick = options.pick !== false;   // pick:false — без наведения/клика по изделиям, только живая композиция
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -463,7 +464,7 @@ export function initMetalHero(container, options = {}) {
   };
   const onUp = (e) => {
     dragging = false;
-    if (Math.hypot(e.clientX - downX, e.clientY - downY) < 8) { toNDC(e); pick(e.pointerType !== 'mouse'); }
+    if (allowPick && Math.hypot(e.clientX - downX, e.clientY - downY) < 8) { toNDC(e); pick(e.pointerType !== 'mouse'); }
   };
   // на тач-экранах карточка остаётся после тапа (pointerleave приходит сразу после касания)
   let overCard = false;
@@ -557,7 +558,7 @@ export function initMetalHero(container, options = {}) {
   const ro = new ResizeObserver(resize);
   ro.observe(container);
   resize();
-  el.style.cursor = 'grab';
+  el.style.cursor = allowPick ? 'grab' : '';
 
   const onScroll = () => {
     const r = container.getBoundingClientRect();
@@ -590,7 +591,7 @@ export function initMetalHero(container, options = {}) {
         rotY += (target - rotY) * Math.min(dt * 0.6, 1);
         rotX += (0 - rotX) * dt * 0.8;
       }
-      if (pointer.x > -2 && canHover.matches && !overCard) pick();
+      if (allowPick && pointer.x > -2 && canHover.matches && !overCard) pick();
     }
 
     root.rotation.y = rotY + scrollP * 0.9;
