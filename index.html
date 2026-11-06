@@ -58,9 +58,9 @@ section[id]{scroll-margin-top:20px}
 
 /* ===== Первый экран (тёмный, 3D) ===== */
 .hero{position:relative;min-height:clamp(600px,calc(100vh - 114px),860px);overflow:hidden;background:
-  radial-gradient(62% 78% at 64% 50%,#454C57 0%,rgba(52,57,65,.55) 45%,rgba(36,40,46,0) 78%),linear-gradient(180deg,#25292F,#1B1E22)}
+  radial-gradient(55% 75% at 78% 45%,rgba(236,228,214,.55) 0%,rgba(236,228,214,0) 70%),linear-gradient(90deg,#16181C 0%,#1A1D21 30%,#3B3934 46%,#8A8274 62%,#C9BFAE 80%,#DDD4C4 100%)}
 .hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;
-  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:64px 64px;
+  background-image:linear-gradient(rgba(120,110,95,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(120,110,95,.12) 1px,transparent 1px);background-size:64px 64px;
   -webkit-mask-image:radial-gradient(70% 70% at 62% 50%,#000,transparent 75%);mask-image:radial-gradient(70% 70% at 62% 50%,#000,transparent 75%)}
 .stage{position:absolute;inset:0;z-index:1}
 .copy{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;min-height:inherit;padding:48px var(--gutter);max-width:min(640px,52vw);pointer-events:none}
@@ -79,7 +79,7 @@ h1{font:600 clamp(40px,5vw,80px)/1.02 var(--font-head);letter-spacing:-.03em;col
 .feats{display:flex;gap:26px;margin-top:22px;flex-wrap:wrap}
 .feats span{position:relative;padding-left:14px;font-size:14px;font-weight:500;color:#D5D9DF}
 .feats span::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:3px;border-radius:2px;background:var(--orange)}
-.hint3d{position:absolute;z-index:2;bottom:22px;left:44%;right:360px;text-align:center;font:500 11.5px var(--font-mark);letter-spacing:.12em;text-transform:uppercase;color:#6A727D;pointer-events:none}
+.hint3d{position:absolute;z-index:2;bottom:22px;left:44%;right:360px;text-align:center;font:500 11.5px var(--font-mark);letter-spacing:.12em;text-transform:uppercase;color:#6E665A;pointer-events:none}
 
 /* карточка изделия в герое */
 .mcard{position:absolute;z-index:4;right:clamp(16px,3vw,40px);top:50%;width:280px;padding:18px 18px 16px;border-radius:14px;
@@ -253,11 +253,11 @@ footer a:hover{color:#fff}footer p{margin-bottom:6px}
 @media(max-width:1180px){.nav ul li:nth-child(4){display:none}.top .hide-m{display:none}.svc{grid-template-columns:repeat(2,1fr)}.fg{grid-template-columns:1fr 1fr}}
 @media(max-width:980px){
   .top{overflow:hidden}.nav ul,.nav .tel span{display:none}.nav{gap:14px}
-  .hero{min-height:0;display:flex;flex-direction:column}
+  .hero{min-height:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#16181C 0%,#1A1D21 46%,#4A463F 60%,#A79E8F 78%,#D9D0C0 100%)}
   .copy{order:1;max-width:none;min-height:0;padding:30px var(--gutter) 0}
   .copy::before{display:none}
   .stage{order:2;position:relative;inset:auto;height:clamp(300px,78vw,520px);margin-top:-10px}
-  .hint3d{left:0;right:0;bottom:10px}
+  .hint3d{left:0;right:0;bottom:10px;font-size:9.5px;letter-spacing:.06em;white-space:normal;padding:0 16px}
   .mcard{top:auto;bottom:12px;left:12px;right:12px;width:auto;transform:translateY(12px)}
   .mcard.is-visible{transform:none}
   .mcard dl,.mcard .tag{display:none}
