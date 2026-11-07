@@ -353,7 +353,7 @@ export function initMetalHero(container, options = {}) {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   const isTouch = window.matchMedia('(pointer: coarse)').matches;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouch ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Retina 2x на всю ширину слишком тяжело; 1.5 + сглаживание визуально так же
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
