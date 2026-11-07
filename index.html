@@ -2,6 +2,7 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Metalica Zuev — металлопрокат в Молдове (тёмная версия)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://maps.google.com"><link rel="preconnect" href="https://maps.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 <style>
@@ -207,7 +208,10 @@ tbody tr:hover td.go{opacity:1}
 .bd .info{padding:20px 22px;display:grid;gap:9px;font-size:14.5px}
 .bd .info .hrs{color:var(--ink-2)}.bd ul{margin:4px 0 0;padding-left:18px;color:var(--ink-2);font-size:14px}
 .bd .links{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
-.map{width:100%;height:300px;border:0;display:block;background:#1a1d22;filter:grayscale(.6) invert(.9) hue-rotate(180deg) contrast(.9)}
+.maps{position:relative;height:300px;background:#1a1d22}
+.maps::after{content:"Загрузка карты…";position:absolute;inset:0;display:grid;place-items:center;font:500 12px var(--font-mark);letter-spacing:.12em;text-transform:uppercase;color:#6A727D}
+.map{position:absolute;inset:0;z-index:1;width:100%;height:100%;border:0;display:block;opacity:0;transition:opacity .3s}
+.map.ready{opacity:1}.map[hidden]{display:none}
 
 /* Заявка */
 .order{display:grid;grid-template-columns:1fr minmax(300px,400px);gap:20px;align-items:start}
@@ -18586,11 +18590,18 @@ fillSizes();
 
 /* ---- базы ---- */
 let bi=0;
+let mapsOn=false;
+new IntersectionObserver(([e],o)=>{if(e.isIntersecting){mapsOn=true;o.disconnect();renderBase();}},{rootMargin:'1200px 0px'}).observe(document.getElementById('bases'));
 function renderBase(){
   $('#btabs').innerHTML=C.bases.map((b,i)=>`<button class="bt ${i===bi?'on':''}" data-i="${i}" type="button"><b>${esc(b.title)}</b><span>${esc(b.city)}, ${esc(b.address)}</span></button>`).join('');
   const b=C.bases[bi],q=encodeURIComponent(`${b.address}, ${b.city}, Moldova`);
-  $('#bd').innerHTML=`<iframe class="map" loading="lazy" title="Карта: ${esc(b.title)}" src="https://maps.google.com/maps?q=${q}&z=15&output=embed"></iframe>
-  <div class="info"><b style="font:600 20px var(--font-head)">${esc(b.title)}</b><div>${esc(b.city)}, ${esc(b.address)}</div><div class="hrs">${esc(b.hours)}</div><div>${esc(b.desc)}</div>
+  if(!$('#bd .maps'))$('#bd').innerHTML='<div class="maps"></div><div class="infoWrap"></div>';
+  const mw=$('#bd .maps');
+  if(mapsOn){let f=mw.querySelector(`iframe[data-i="${bi}"]`);
+    if(!f){f=document.createElement('iframe');f.className='map';f.dataset.i=bi;f.title='Карта: '+b.title;
+      f.src=`https://maps.google.com/maps?q=${q}&z=15&output=embed`;f.onload=()=>f.classList.add('ready');mw.appendChild(f);}
+    mw.querySelectorAll('iframe').forEach(x=>x.hidden=x!==f);}
+  $('#bd .infoWrap').innerHTML=`<div class="info"><b style="font:600 20px var(--font-head)">${esc(b.title)}</b><div>${esc(b.city)}, ${esc(b.address)}</div><div class="hrs">${esc(b.hours)}</div><div>${esc(b.desc)}</div>
   <ul>${b.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
   <div class="links"><a class="btn primary xs" href="${esc(b.mapUrl)}" target="_blank" rel="noopener">Маршрут в Google Maps</a><a class="btn ghost xs" href="tel:${b.phoneRaw||'+37368471530'}">${esc(b.phone||'+373 68 471 530')}</a></div></div>`;
 }

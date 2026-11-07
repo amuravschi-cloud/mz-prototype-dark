@@ -46,6 +46,21 @@ $('#cards').onclick=e=>{const t=e.target.closest('.tile');if(!t)return;
 $('#cards').onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('tile')){e.preventDefault();openSizes(byId(e.target.dataset.id));}};""",
 script, re.S)
 
+# --- карты: начинают грузиться заранее (при подлёте к блоку), каждая база — один раз, без пересоздания ---
+script = sub1(r"let bi=0;\n", """let bi=0;
+let mapsOn=false;
+new IntersectionObserver(([e],o)=>{if(e.isIntersecting){mapsOn=true;o.disconnect();renderBase();}},{rootMargin:'1200px 0px'}).observe(document.getElementById('bases'));
+""", script)
+MAP_HEAD = r"\$\('#bd'\)\.innerHTML=`<iframe class=\"map\"[^`]*?</iframe>\n  <div class=\"info\">"
+MAP_NEW = """if(!$('#bd .maps'))$('#bd').innerHTML='<div class="maps"></div><div class="infoWrap"></div>';
+  const mw=$('#bd .maps');
+  if(mapsOn){let f=mw.querySelector(`iframe[data-i="${bi}"]`);
+    if(!f){f=document.createElement('iframe');f.className='map';f.dataset.i=bi;f.title='Карта: '+b.title;
+      f.src=`https://maps.google.com/maps?q=${q}&z=15&output=embed`;f.onload=()=>f.classList.add('ready');mw.appendChild(f);}
+    mw.querySelectorAll('iframe').forEach(x=>x.hidden=x!==f);}
+  $('#bd .infoWrap').innerHTML=`<div class="info">"""
+script = sub1(MAP_HEAD, lambda m: MAP_NEW, script)
+
 module = r"""
 import { initMetalHero, METAL_ITEMS } from './metal-hero.js';
 const C = JSON.parse(document.getElementById('d-content').textContent);
@@ -69,6 +84,7 @@ head = """<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Metalica Zuev — металлопрокат в Молдове (тёмная версия)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://maps.google.com"><link rel="preconnect" href="https://maps.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 <style>
