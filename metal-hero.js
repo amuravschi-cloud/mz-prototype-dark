@@ -81,7 +81,7 @@ float mzNoise(vec3 v){
   vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
   return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
 }
-float mzFbm(vec3 p){ float a=0.5, s=0.0; for(int i=0;i<5;i++){ s+=a*mzNoise(p); p=p*2.03+17.1; a*=0.5; } return s; }
+float mzFbm(vec3 p){ float a=0.5, s=0.0; for(int i=0;i<3;i++){ s+=a*mzNoise(p); p=p*2.03+17.1; a*=0.5; } return s; }
 float mzHash(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7,74.7)))*43758.5453); }
 vec3 mzHash3(vec3 p){ return vec3(mzHash(p), mzHash(p+19.19), mzHash(p+47.3)); }
 // ячейки Вороного — кристаллы цинка на оцинковке
@@ -104,31 +104,15 @@ vec3 mzBumpN(vec3 pos, vec3 n, float h, float k){
 // Тело расчёта поверхности + растворение (вставляется в начало main)
 const GLSL_SURFACE = /* glsl */ `
   vec3 q = vLPos * 10.0 + uSeed * 13.0;              // ~1 ед. = 1 см
-  // длинные облачные разводы вдоль проката (как на реальной чёрной трубе)
-  float cloud = mzFbm(vec3(q.xy * 0.09, q.z * 0.016));
-  float cloud2 = mzFbm(vec3(q.xy * 0.32, q.z * 0.05) + 7.0);
-  // мягкие продольные полосы от валков
+  // ровный графит: лёгкая неоднородность вдоль проката + продольные полосы от валков
+  float cloud = mzNoise(vec3(q.xy * 0.09, q.z * 0.016));
   float streak = mzNoise(vec3(q.xy * 2.2, q.z * 0.05)) * 0.6 + mzNoise(vec3(q.xy * 7.0, q.z * 0.12)) * 0.4;
   float micro = mzNoise(q * 3.0);
 
   vec3 mzCol = uBase * (0.97 + 0.04 * cloud) * (1.0 + uStreak * streak);
-  float mzRough = uRough + 0.02 * cloud2 + 0.02 * micro;
+  float mzRough = uRough + 0.02 * cloud + 0.02 * micro;
   float mzMetal = 0.9;
   float mzH = streak * uStreak * 0.4 + micro * 0.02;
-
-  // оксидная плёнка: светлые пыльные матовые разводы
-  if (uScale > 0.0) {
-    float ox = smoothstep(0.0, 0.4, cloud * 0.8 + cloud2 * 0.55 + (uScale - 0.5) * 0.6);
-    vec3 oxCol = vec3(0.17, 0.175, 0.185) * (0.9 + 0.2 * cloud2);
-    mzCol = mix(mzCol, oxCol, ox * 0.0); // разводы отключены — ровный графит
-    mzRough = mix(mzRough, 0.55, ox * 0.15);
-    mzH += ox * 0.08;
-  }
-
-  // редкие светлые царапины и потёртости вдоль длины
-  float scr = smoothstep(0.55, 0.78, mzNoise(vec3(q.xy * 4.0, q.z * 0.035) + 3.0)) * smoothstep(0.25, 0.6, mzNoise(q * 0.3 + 9.0));
-  mzCol = mix(mzCol, vec3(0.26, 0.27, 0.28), scr * 0.0);
-  mzRough -= scr * 0.12;
 
   // цинк: крупные кристаллы, низкий контраст
   if (uSpangle > 0.0) {
@@ -368,7 +352,8 @@ export function initMetalHero(container, options = {}) {
   const allowPick = options.pick !== false;   // pick:false — без наведения/клика по изделиям, только живая композиция
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouch ? 1.5 : 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -379,11 +364,20 @@ export function initMetalHero(container, options = {}) {
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envScene = makeWarehouseEnv();
-  const envRT = pmrem.fromScene(envScene, 0.035);
+  let envRT = pmrem.fromScene(envScene, 0.035);
   scene.environment = envRT.texture;
+  // iOS Safari может сбросить WebGL-контекст (память, фоновая вкладка) — восстанавливаемся сами
+  const onLost = (e) => { e.preventDefault(); };
+  const onRestored = () => {
+    envRT.dispose();
+    envRT = pmrem.fromScene(envScene, 0.035);
+    scene.environment = envRT.texture;
+  };
+  renderer.domElement.addEventListener('webglcontextlost', onLost);
+  renderer.domElement.addEventListener('webglcontextrestored', onRestored);
 
   const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
-  const CAM_DIST = 11.5;
+  const CAM_DIST = 14;
   camera.position.set(0, 2.8, CAM_DIST);
   camera.lookAt(0, 0, 0);
 
@@ -432,7 +426,7 @@ export function initMetalHero(container, options = {}) {
   const ray = new THREE.Raycaster();
   let hovered = null;
   let dragging = false, lastX = 0, lastY = 0, velY = 0, velX = 0;
-  const BASE_YAW = 0.82;   // стартовый разворот «три четверти» — видны торцы и сечения
+  const BASE_YAW = -0.9;   // разворот «три четверти»: торцы и сечения смотрят вправо, к зрителю
   let rotY = BASE_YAW, rotX = 0, swayT = 0;
   let lastInteract = -1e9;
   let px = 0, py = 0;
@@ -534,7 +528,7 @@ export function initMetalHero(container, options = {}) {
     if (a > -1) stops.push(`transparent ${Math.max(a, 0)}px`, `#000 ${b}px`); else stops.push('#000 0px');
     if (c < 1e5) stops.push(`#000 ${c}px`, `transparent ${d}px`); else stops.push('#000 100%');
     let mask = `linear-gradient(90deg, ${stops.join(', ')})`;
-    if (!wide) mask = 'linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(180deg, transparent, #000 28%, #000 88%, transparent)';
+    if (!wide) mask = 'linear-gradient(90deg, transparent, #000 14%), linear-gradient(180deg, transparent, #000 28%, #000 90%, transparent)';
     el.style.maskImage = mask; el.style.webkitMaskImage = mask;
     el.style.maskComposite = wide ? 'add' : 'intersect';
     el.style.webkitMaskComposite = wide ? 'source-over' : 'source-in';
@@ -546,11 +540,11 @@ export function initMetalHero(container, options = {}) {
     el.style.width = w + 'px'; el.style.height = h + 'px';
     camera.aspect = w / h;
     const narrow = w / h < 1;
-    camera.position.z = narrow ? CAM_DIST / Math.max(w / h, 0.5) * 0.95 : CAM_DIST;
+    camera.position.z = narrow ? CAM_DIST / Math.max(w / h, 0.5) * 0.8 : (w < 900 ? CAM_DIST * 0.9 : CAM_DIST);
     camera.position.y = narrow ? 2.2 : 2.8;
     camera.lookAt(0, 0, 0);
     // на широком экране сдвигаем композицию вправо, в свободную от текста зону
-    const shift = w >= 900 ? (options.shiftX ?? 0.13) : 0;
+    const shift = w >= 900 ? (options.shiftX ?? 0.08) : 0;
     camera.setViewOffset(w, h, -w * shift, 0, w, h);
     camera.updateProjectionMatrix();
     updateFade();
@@ -587,14 +581,14 @@ export function initMetalHero(container, options = {}) {
         // мягкое покачивание вместо полного оборота — прутки не «смотрят» в камеру
         rotY = Math.atan2(Math.sin(rotY), Math.cos(rotY));
         swayT += dt * (reduced ? 0.3 : 1);
-        const target = BASE_YAW + Math.sin(swayT * 0.22) * 0.38;
+        const target = BASE_YAW + Math.sin(swayT * 0.22) * 0.2;
         rotY += (target - rotY) * Math.min(dt * 0.6, 1);
         rotX += (0 - rotX) * dt * 0.8;
       }
       if (allowPick && pointer.x > -2 && canHover.matches && !overCard) pick();
     }
 
-    root.rotation.y = rotY + scrollP * 0.9;
+    root.rotation.y = rotY;
     root.rotation.x = rotX;
     tilt.position.y = scrollP * 0.8;
     tilt.rotation.y += (px * 0.2 - tilt.rotation.y) * dt * 3;

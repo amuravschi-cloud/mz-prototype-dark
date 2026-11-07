@@ -26,12 +26,13 @@ body = sub1(r'<section class="hero">', '<section class="hero dark">', body)
 for sid, theme in [('catalog', 'light'), ('calc', 'dark'), ('hand', 'light'), ('service', 'dark'),
                    ('about', 'light'), ('bases', 'dark'), ('order', 'light')]:
     body = sub1(r'<section class="sec(?: alt)?" id="%s">' % sid, '<section class="sec %s" id="%s">' % (theme, sid), body)
+body = sub1(r'(<button class="fab" id="fab"[^>]*>.*?</button>)', r'\1\n<button class="totop" id="totop" type="button" aria-label="Наверх"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>', body, re.S)
 body = sub1(r'<div class="grid" id="cards"></div>', '<div class="tiles" id="cards"></div>', body)
 
 # --- логика: каталог картинками вместо карточек ---
 script = sub1(r"\$\('#cards'\)\.innerHTML=C\.products\.map\(.*?\}\)\.join\(''\);",
 """$('#cards').innerHTML=C.products.map(p=>`<div class="tile" role="button" tabindex="0" data-id="${p.id}">
-  <div class="pic ph"><img alt="${esc(p.title)}" data-thumb="${p.id}"></div>
+  <div class="pic"><img alt="${esc(p.title)}" src="img/products/${p.id}.webp" width="640" height="480" loading="lazy" decoding="async"></div>
   <button class="add" type="button" data-act="order" title="Выбрать размер" aria-label="Выбрать размер: ${esc(p.title)}">+</button>
   <div class="cap"><div class="no">${p.code}</div><h3>${esc(p.title)}</h3><div class="sub">${esc(cleanSub(p))}</div><span class="more">Размеры →</span></div></div>`).join('');""",
 script, re.S)
@@ -46,7 +47,7 @@ $('#cards').onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList.
 script, re.S)
 
 module = r"""
-import { initMetalHero, METAL_ITEMS, renderProductThumbs } from './metal-hero.js';
+import { initMetalHero, METAL_ITEMS } from './metal-hero.js';
 const C = JSON.parse(document.getElementById('d-content').textContent);
 const P = Object.fromEntries(C.products.map(p => [p.id, p]));
 const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
@@ -57,16 +58,11 @@ const cleanSub = p => SUB_FIX[p.id] || p.subtitle.replace(/\s*\([^)]*\d[^)]*\)/g
 
 initMetalHero(document.getElementById('stage'), { items, pick: false, fadeBehind: document.querySelector('.hero .copy') });
 
-// картинки номенклатуры — рендерятся тем же 3D-металлом, когда каталог приближается к экрану
-const cat = document.getElementById('catalog');
-const io = new IntersectionObserver(async ([en]) => {
-  if (!en.isIntersecting) return;
-  io.disconnect();
-  const imgs = [...document.querySelectorAll('img[data-thumb]')];
-  const urls = await renderProductThumbs(imgs.map(i => i.dataset.thumb));
-  imgs.forEach(i => { if (urls[i.dataset.thumb]) { i.src = urls[i.dataset.thumb]; i.parentElement.classList.remove('ph'); } });
-}, { rootMargin: '600px 0px' });
-io.observe(cat);
+// кнопка «наверх»
+const toTop = document.getElementById('totop');
+const onTop = () => toTop.classList.toggle('show', window.scrollY > window.innerHeight * 0.8);
+window.addEventListener('scroll', onTop, { passive: true }); onTop();
+toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 """
 
 head = """<!doctype html>

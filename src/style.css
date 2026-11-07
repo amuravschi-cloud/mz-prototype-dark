@@ -102,7 +102,6 @@ h2{font:600 clamp(26px,2.6vw,38px)/1.1 var(--font-head);letter-spacing:-.022em;m
 .tile .pic::after{content:"";position:absolute;left:18%;right:18%;bottom:7%;height:10%;border-radius:50%;background:radial-gradient(closest-side,rgba(20,22,26,.22),rgba(20,22,26,0));z-index:0}
 .tile img{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 .tile:hover img{transform:translateY(-4px) scale(1.04)}
-.tile .pic.ph{background:radial-gradient(closest-side,rgba(20,22,26,.06),transparent)}
 .tile .cap{padding:2px 10px 0}
 .tile .no{font:500 11px var(--font-mark);letter-spacing:.1em;color:var(--orange)}
 .tile h3{font:600 15px/1.22 var(--font-head);letter-spacing:-.01em;margin:3px 0 3px}
@@ -219,6 +218,13 @@ tbody tr:hover td.go{opacity:1}
 .file{font-size:14px;padding-top:12px}
 .fab{position:fixed;right:20px;bottom:20px;z-index:40;display:none;align-items:center;gap:10px;height:52px;padding:0 22px;border-radius:999px;background:var(--orange);color:var(--orange-ink);font:500 15px var(--font-body);box-shadow:0 12px 30px rgba(255,106,26,.35);border:0;cursor:pointer}
 .fab.show{display:inline-flex}.fab b{background:var(--orange-ink);color:#fff;border-radius:999px;min-width:24px;height:24px;display:grid;place-items:center;font-size:13px;padding:0 6px}
+
+/* Кнопка «наверх» — над кнопкой заявки, если она видна */
+.totop{position:fixed;right:20px;bottom:20px;z-index:41;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(20,23,28,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.3);opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .25s,transform .25s,background .2s}
+.totop.show{opacity:1;transform:none;pointer-events:auto}
+.totop:hover{background:var(--orange);color:var(--orange-ink);border-color:var(--orange)}
+.totop svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.fab.show~.totop{bottom:86px}
 
 /* Подвал */
 footer{background:var(--d0);color:rgba(238,240,243,.62);padding:52px 0 28px;font-size:14.5px}
