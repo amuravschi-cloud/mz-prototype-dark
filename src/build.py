@@ -32,7 +32,7 @@ body = sub1(r'<div class="grid" id="cards"></div>', '<div class="tiles" id="card
 # --- логика: каталог картинками вместо карточек ---
 script = sub1(r"\$\('#cards'\)\.innerHTML=C\.products\.map\(.*?\}\)\.join\(''\);",
 """$('#cards').innerHTML=C.products.map(p=>`<div class="tile" role="button" tabindex="0" data-id="${p.id}">
-  <div class="pic"><img alt="${esc(p.title)}" src="img/products/${p.id}.webp" width="640" height="480" loading="lazy" decoding="async"></div>
+  <div class="pic"><img alt="${esc(p.title)}" src="img/products/${p.id}.webp" width="640" height="480" decoding="async"></div>
   <button class="add" type="button" data-act="order" title="Выбрать размер" aria-label="Выбрать размер: ${esc(p.title)}">+</button>
   <div class="cap"><div class="no">${p.code}</div><h3>${esc(p.title)}</h3><div class="sub">${esc(cleanSub(p))}</div><span class="more">Размеры →</span></div></div>`).join('');""",
 script, re.S)
