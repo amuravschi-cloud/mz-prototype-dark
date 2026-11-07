@@ -32,7 +32,7 @@ body = sub1(r'<div class="grid" id="cards"></div>', '<div class="tiles" id="card
 script = sub1(r"\$\('#cards'\)\.innerHTML=C\.products\.map\(.*?\}\)\.join\(''\);",
 """$('#cards').innerHTML=C.products.map(p=>`<div class="tile" role="button" tabindex="0" data-id="${p.id}">
   <div class="pic ph"><img alt="${esc(p.title)}" data-thumb="${p.id}"></div>
-  <button class="add" type="button" data-act="order" title="Заказать" aria-label="Заказать: ${esc(p.title)}">+</button>
+  <button class="add" type="button" data-act="order" title="Выбрать размер" aria-label="Выбрать размер: ${esc(p.title)}">+</button>
   <div class="cap"><div class="no">${p.code}</div><h3>${esc(p.title)}</h3><div class="sub">${esc(cleanSub(p))}</div><span class="more">Размеры →</span></div></div>`).join('');""",
 script, re.S)
 script = sub1(r"\$\('#cards'\)\.onclick=e=>\{.*?\n\};",
@@ -41,7 +41,7 @@ const byId=id=>C.products.find(x=>x.id===id);
 window.mzOpenSizes=id=>openSizes(byId(id));
 window.mzOrder=id=>{add(byId(id).title);document.getElementById('order').scrollIntoView();};
 $('#cards').onclick=e=>{const t=e.target.closest('.tile');if(!t)return;
-  if(e.target.closest('[data-act=order]'))window.mzOrder(t.dataset.id);else openSizes(byId(t.dataset.id));};
+  openSizes(byId(t.dataset.id));};  // и «+», и клик по картинке — список размеров
 $('#cards').onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('tile')){e.preventDefault();openSizes(byId(e.target.dataset.id));}};""",
 script, re.S)
 
@@ -80,6 +80,10 @@ head = """<!doctype html>
 
 ver = hashlib.md5((ROOT / 'metal-hero.js').read_bytes()).hexdigest()[:8]
 module = module.replace("from './metal-hero.js'", "from './metal-hero.js?v=%s'" % ver)
+# --- телефоны в одном формате: +373, код, группы цифр через пробел ---
+PHONES = {'+373 68 47-15-30': '+373 68 471 530', '0235 80 008': '+373 235 80 008', '+373 ___ __ ___': '+373 __ ___ ___'}
+for old, new in PHONES.items():
+    body = body.replace(old, new); data = data.replace(old, new); script = script.replace(old, new)
 out = head + body + data + "\n<script>" + script + "</script>\n<script type=\"module\">" + module + "</script>\n</body></html>\n"
 (ROOT / 'index.html').write_text(out)
 print('ok', len(out))
